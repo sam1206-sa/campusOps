@@ -40,10 +40,6 @@ CATEGORY_RESPONSES = {
         "Certificate request submitted. "
         "Your official Transcript / Bonafide certificate is currently processing and will be issued within 2 business days."
     ),
-    "faq": (
-        "According to the Campus Policy Handbook (Section 4.2): "
-        "A minimum of 75% attendance is required for exam eligibility. Late fee waivers close on the 15th."
-    ),
     "notifier": (
         "Latest Announcements: Spring semester exam schedule released. Degree and transcript application portal is now active."
     ),
