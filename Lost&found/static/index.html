@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Lost & Found Operations | AI Agent Hub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Background Dynamic Glow Spheres -->
+    <div class="bg-glow blob-1"></div>
+    <div class="bg-glow blob-2"></div>
+    <div class="bg-glow blob-3"></div>
+
+    <div class="app-container">
+        
+        <!-- HEADER & NAVBAR -->
+        <header class="header-card">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-radar"></i>
+                </div>
+                <div>
+                    <h1>Campus Lost & Found</h1>
+                    <p class="subtitle">AI-Powered Multi-Agent Operations Hub</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="agent-status-badge">
+                    <span class="status-dot"></span>
+                    <span>uAgent Active: Port 8004</span>
+                </div>
+                <button id="btn-seed" class="btn btn-secondary" title="Populate database with sample items">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Data
+                </button>
+                <button id="btn-reset" class="btn btn-ghost" title="Clear all records">
+                    <i class="fa-solid fa-trash-can"></i> Reset DB
+                </button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD STATS METRICS -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Reports</span>
+                    <h3 id="stat-total" class="stat-value">0</h3>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon icon-rose">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Lost Items</span>
+                    <h3 id="stat-lost" class="stat-value">0</h3>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon icon-emerald">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Found Items</span>
+                    <h3 id="stat-found" class="stat-value">0</h3>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon icon-purple">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Matches Connected</span>
+                    <h3 id="stat-matched" class="stat-value">0</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT: FORM & FEED -->
+        <main class="main-layout">
+            
+            <!-- LEFT PANEL: REPORT FORM -->
+            <section class="glass-panel form-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-pen-to-square"></i> Submit New Report</h2>
+                    <p>Report a lost or found item. Our agent automatically classifies intent and checks for matches.</p>
+                </div>
+
+                <form id="report-form" class="report-form">
+                    
+                    <div class="form-group">
+                        <label for="user-id"><i class="fa-solid fa-user-tag"></i> Student / Staff ID</label>
+                        <input type="text" id="user-id" class="input-control" placeholder="e.g. alex_student_99" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category"><i class="fa-solid fa-layer-group"></i> Category</label>
+                            <select id="category" class="input-control">
+                                <option value="Personal Items">Personal Items</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="ID & Cards">ID & Cards</option>
+                                <option value="Keys">Keys</option>
+                                <option value="Apparel & Bags">Apparel & Bags</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location"><i class="fa-solid fa-location-dot"></i> Campus Location</label>
+                            <input type="text" id="location" class="input-control" placeholder="e.g. Science Library 3rd Floor">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="text-input"><i class="fa-solid fa-message"></i> Report Description</label>
+                        <textarea id="text-input" class="input-control textarea-control" rows="4" placeholder="Describe the item... (e.g. 'I lost my blue Hydroflask water bottle near the library' or 'Found a set of keys near room 204')" required></textarea>
+                        <span class="input-hint"><i class="fa-solid fa-lightbulb"></i> Include words like <b>'lost'</b>, <b>'missing'</b>, or <b>'found'</b>, <b>'picked up'</b> for automatic AI classification.</span>
+                    </div>
+
+                    <button type="submit" id="btn-submit" class="btn btn-primary btn-block">
+                        <i class="fa-solid fa-paper-plane"></i> Process & Match Report
+                    </button>
+                </form>
+
+                <!-- LIVE TOAST BANNER -->
+                <div id="toast-banner" class="toast-banner hidden">
+                    <div class="toast-icon" id="toast-icon"></div>
+                    <div class="toast-body">
+                        <h4 id="toast-title">Notification</h4>
+                        <p id="toast-message">Message text</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: DIRECTORY & LIVE MATCHES -->
+            <section class="glass-panel feed-panel">
+                <div class="feed-header">
+                    <div>
+                        <h2><i class="fa-solid fa-list-check"></i> Campus Items Directory</h2>
+                        <p>Real-time log of lost, found, and matched items</p>
+                    </div>
+
+                    <!-- SEARCH & FILTER CONTROLS -->
+                    <div class="filter-bar">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" placeholder="Search items or locations...">
+                        </div>
+
+                        <div class="tab-group" id="status-tabs">
+                            <button class="tab-btn active" data-tab="all">All</button>
+                            <button class="tab-btn" data-tab="lost">Lost</button>
+                            <button class="tab-btn" data-tab="found">Found</button>
+                            <button class="tab-btn" data-tab="matched">Matched</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEMS LIST CONTAINER -->
+                <div id="items-grid" class="items-grid">
+                    <!-- Dynamic Item Cards rendered by app.js -->
+                </div>
+
+                <div id="empty-state" class="empty-state hidden">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>No items found</h3>
+                    <p>Try submitting a report or click "Load Sample Data" above.</p>
+                </div>
+            </section>
+        </main>
+        
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>Campus Operations Multi-Agent System &bull; Lost & Found Agent running on Port 8004</p>
+        </footer>
+    </div>
+
+    <!-- MATCH HIGHLIGHT MODAL -->
+    <div id="match-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-badge"><i class="fa-solid fa-sparkles"></i> MATCH DETECTED</div>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h2>🎉 We found a potential match!</h2>
+                <p>The AI Agent detected a strong keyword overlap between your report and an existing item in the database.</p>
+                
+                <div class="match-comparison-grid">
+                    <div class="comparison-card new-item">
+                        <span class="card-tag">YOUR REPORT</span>
+                        <h4 id="modal-your-title">Report Title</h4>
+                        <p id="modal-your-desc">Description</p>
+                        <span id="modal-your-user" class="meta-tag">User</span>
+                    </div>
+
+                    <div class="match-connector">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+
+                    <div class="comparison-card matched-item">
+                        <span class="card-tag tag-match">MATCHED ITEM</span>
+                        <h4 id="modal-match-title">Report Title</h4>
+                        <p id="modal-match-desc">Description</p>
+                        <span id="modal-match-user" class="meta-tag">User</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <p class="connect-note"><i class="fa-solid fa-shield-halved"></i> Both records have been linked in the database (IDs connected).</p>
+                    <button id="modal-ack-btn" class="btn btn-primary">Acknowledge & Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
