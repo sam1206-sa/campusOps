@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>campusOps - Campus Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sky-glow"></div>
+    <div class="container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="icon" style="background: #eedeff; color: #7c3aed;">🎓</span>
+                <div>
+                    <h1>campus<span>Ops</span></h1>
+                    <p class="subtitle">CAMPUS PORTAL</p>
+                </div>
+            </div>
+            
+            <!-- Contextual Search Bar in Header -->
+            <div class="header-search">
+                <input type="text" id="headerSearchInput" placeholder="Search or ask anything (e.g. 'I need a transcript', 'check status')...">
+                <button type="button" id="headerSearchBtn">Search ➔</button>
+            </div>
+            
+            <div class="agent-status-panel">
+                <span class="pulse-indicator"></span>
+                <span class="status-text">Portal Online</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <div class="workspace-grid">
+            
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                
+                <!-- Profile Section -->
+                <div class="card glass sidebar-section">
+                    <h3 class="card-title">👤 User Identity Profile</h3>
+                    <div class="profile-selector-group">
+                        <div class="select-wrapper">
+                            <select id="userIdSelect">
+                                <option value="student_priya_123">student_priya_123 (Priya Sundar)</option>
+                                <option value="student_karthik_999">student_karthik_999 (Karthik Ramasamy)</option>
+                                <option value="staff_srinivasan_55">staff_srinivasan_55 (Srinivasan Ramanujam - Admin)</option>
+                            </select>
+                        </div>
+                        <div class="custom-id-input">
+                            <input type="text" id="customUserId" placeholder="Custom user ID...">
+                            <button id="setCustomUserBtn">Switch</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Left Menu Categories -->
+                <div class="card glass sidebar-section">
+                    <div class="sidebar-nav-title">Categories</div>
+                    <div class="sidebar-nav">
+                        <button class="nav-item active" onclick="switchCategory('all')">
+                            <span>📂</span> All Queries
+                        </button>
+                        <button class="nav-item" onclick="switchCategory('exams')">
+                            <span>📅</span> Exams & Timetable
+                        </button>
+                        <button class="nav-item" onclick="switchCategory('repairs')">
+                            <span>⚠️</span> WiFi & Repairs
+                        </button>
+                        <button class="nav-item" onclick="switchCategory('certificates')">
+                            <span>📄</span> Certificates & Forms
+                        </button>
+                        <button class="nav-item" onclick="switchCategory('rules')">
+                            <span>📖</span> Rules & Policies
+                        </button>
+                        <button class="nav-item" onclick="switchCategory('announcements')">
+                            <span>📢</span> Announcements
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Instant Document Action Quick Panel -->
+                <div class="card glass sidebar-section">
+                    <h3 class="card-title">📝 Quick Apply Document</h3>
+                    <p class="card-desc" style="margin-bottom: 0.75rem; font-size: 0.75rem;">Clicking a button below will immediately trigger your request.</p>
+                    <form id="requestForm">
+                        <div class="doc-options-grid" style="margin-bottom: 0.75rem;">
+                            <button type="button" class="doc-btn doc-trigger-btn" data-value="bonafide">
+                                <span class="doc-btn-icon">🎖️</span>
+                                <span class="doc-btn-label">Bonafide</span>
+                            </button>
+                            <button type="button" class="doc-btn doc-trigger-btn" data-value="transcript">
+                                <span class="doc-btn-icon">📊</span>
+                                <span class="doc-btn-label">Transcript</span>
+                            </button>
+                            <button type="button" class="doc-btn doc-trigger-btn" data-value="fee_receipt">
+                                <span class="doc-btn-icon">💳</span>
+                                <span class="doc-btn-label">Fee Receipt</span>
+                            </button>
+                            <button type="button" class="doc-btn doc-trigger-btn" data-value="course_completion">
+                                <span class="doc-btn-icon">🎓</span>
+                                <span class="doc-btn-label">Completion</span>
+                            </button>
+                        </div>
+                        <input type="text" id="requestReason" placeholder="Optional: Stated reason/purpose..." style="margin-bottom: 0.5rem;" autocomplete="off">
+                        <button type="submit" class="submit-btn" id="submitFormBtn" style="display:none;">Submit</button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Right Workspace Main Content -->
+            <main class="main-content">
+                
+                <!-- Assistant Section -->
+                <div class="card glass chat-panel">
+                    <div style="margin-bottom: 0.5rem;">
+                        <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-dark);">campusOps Assistant Stream</h2>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Search any query in the top bar or click a category on the left/above for instant responses.</p>
+                    </div>
+                    
+                    <div class="chat-container" id="chatContainer">
+                        <div class="message agent">
+                            <div class="message-bubble">
+                                Hello! I am the campus Document Request agent. How can I assist you with your transcripts, certificates, or fee receipts today?
+                            </div>
+                            <div class="message-time">System Ready</div>
+                        </div>
+                    </div>
+
+                    <form id="chatForm" class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ask anything to the agent (e.g. 'I need a bonafide for internship')..." required autocomplete="off">
+                        <button type="submit" class="send-btn">Send ➔</button>
+                    </form>
+                </div>
+
+                <!-- Database Explorer Explorer -->
+                <section class="card glass explorer-panel">
+                    <div class="explorer-header">
+                        <h3 class="card-title">📁 Request History Database</h3>
+                        <button class="refresh-btn" id="refreshDbBtn">🔄 Refresh Records</button>
+                    </div>
+                    
+                    <!-- Dynamic Stats Cards Dashboard -->
+                    <div class="stats-dashboard" id="statsDashboard">
+                        <div class="stat-card">
+                            <span class="stat-icon" style="color: var(--primary);">📂</span>
+                            <div>
+                                <div class="stat-value" id="statTotal">0</div>
+                                <div class="stat-label">Total Submissions</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon" style="color: var(--warning);">⏳</span>
+                            <div>
+                                <div class="stat-value" id="statPending">0</div>
+                                <div class="stat-label">Pending Approval</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon" style="color: #3b82f6;">✅</span>
+                            <div>
+                                <div class="stat-value" id="statApproved">0</div>
+                                <div class="stat-label">Approved</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon" style="color: var(--success);">📦</span>
+                            <div>
+                                <div class="stat-value" id="statReady">0</div>
+                                <div class="stat-label">Ready for Pickup</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="requests-table">
+                            <thead>
+                                <tr id="tableHeaderRow">
+                                    <th>ID</th>
+                                    <th class="staff-only-col" style="display: none;">Requested By</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Stated Reason</th>
+                                    <th>Requested On</th>
+                                    <th>Last Updated</th>
+                                    <th>Quick Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsTableBody">
+                                <tr>
+                                    <td colspan="7" class="loading-placeholder">Select a user profile or refresh to view requests.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
