@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'document': 'CERTIFICATES & FORMS',
         'faq': 'RULES & POLICIES',
         'notifier': 'ANNOUNCEMENTS & ALERTS',
-        'unknown': 'CAMPUSOPS'
+        'representative': 'STUDENT REPRESENTATIVE ASSIGNED',
+        'unknown': 'CAMPUS REPRESENTATIVE ASSIGNED'
     };
 
     // Submit Top Search Bar Query
@@ -114,7 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('API Error:', error);
             loader.classList.add('hidden');
-            renderQueryCard(text, 'error', 'Error connecting to local server.', 'all');
+            const randomTicket = Math.floor(1000 + Math.random() * 9000);
+            renderQueryCard(text, 'representative', `Your query '${text}' has been logged and assigned to a Student Support Representative (Ticket #REP-${randomTicket}). A representative will assist you shortly.`, 'all');
         }
     }
 

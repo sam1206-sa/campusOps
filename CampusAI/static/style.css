@@ -467,7 +467,8 @@ body {
 .badge-document { background: rgba(124, 58, 237, 0.12); color: var(--document-color); border: 1px solid rgba(124, 58, 237, 0.3); }
 .badge-faq { background: rgba(132, 88, 179, 0.15); color: var(--vibrant-purple); border: 1px solid var(--vibrant-purple); }
 .badge-notifier { background: rgba(5, 150, 105, 0.12); color: var(--success); border: 1px solid rgba(5, 150, 105, 0.3); }
-.badge-unknown { background: rgba(107, 114, 128, 0.12); color: var(--text-dim); }
+.badge-representative { background: rgba(132, 88, 179, 0.18); color: var(--vibrant-purple); border: 1.5px solid var(--vibrant-purple); box-shadow: 0 2px 8px rgba(132, 88, 179, 0.2); }
+.badge-unknown { background: rgba(132, 88, 179, 0.18); color: var(--vibrant-purple); border: 1.5px solid var(--vibrant-purple); }
 
 /* Loader */
 .loader-box {

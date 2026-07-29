@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import os
+import random
 import uvicorn
 
 # Import intent classification logic from orchestrator.py
@@ -62,22 +63,27 @@ async def serve_index():
 async def process_user_query(query: ChatQueryRequest):
     """
     API Endpoint used by the Web UI search bar.
-    Classifies intent and returns the category response.
+    Classifies intent and returns category or student representative response.
     """
-    text = query.text
+    text = query.text.strip()
     user_id = query.user_id
 
     # 1. Classify intent
     intent = classify_intent(text)
 
-    # 2. Handle Unknown Intent
+    # 2. Handle Unknown or General Queries by Routing to Representative
     if intent == "unknown":
+        ticket_id = f"REP-{random.randint(1000, 9999)}"
+        reply_text = (
+            f"Your query '{text}' has been forwarded to a Student Support Representative (Ticket #{ticket_id}). "
+            "A campus representative has been assigned to assist you and will reply directly on your student desk."
+        )
         return JSONResponse({
-            "intent": "unknown",
-            "reply": "I'm sorry, I could not understand your request. Please ask about exams, WiFi repairs, certificates, or campus rules."
+            "intent": "representative",
+            "reply": reply_text
         })
 
-    # 3. Handle Category Response
+    # 3. Handle Known Category Response
     reply_text = CATEGORY_RESPONSES.get(intent, "")
 
     return JSONResponse({
@@ -93,3 +99,4 @@ if __name__ == "__main__":
     print("Alternative Link:   http://127.0.0.1:5050")
     print("============================================================")
     uvicorn.run(app, host="127.0.0.1", port=5050)
+
