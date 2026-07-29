@@ -52,7 +52,7 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(404).json({ message: `Student with Register Number ${cleanId} not found.` });
     }
     const token = jwt.sign({ regNo: student.regNo, role: 'student', name: student.name, dept: student.dept }, JWT_SECRET);
-    return res.json({ token, user: student });
+    return res.json({ token, user: { ...student, role: 'student' } });
   } 
   
   if (role === 'staff') {
@@ -62,7 +62,7 @@ app.post('/api/auth/login', (req, res) => {
     }
     const token = jwt.sign({ staffId: faculty.id, role: 'staff', name: faculty.name, dept: faculty.dept }, JWT_SECRET);
     const staffDuty = getLocalData('staffDuties')[faculty.id] || { meetings: [], invigilations: [], subjectAllocation: [] };
-    return res.json({ token, user: { ...faculty, duty: staffDuty } });
+    return res.json({ token, user: { ...faculty, role: 'staff', duty: staffDuty } });
   }
 
   if (role === 'admin') {

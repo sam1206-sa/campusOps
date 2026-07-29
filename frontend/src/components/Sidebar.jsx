@@ -21,6 +21,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       return [
         { id: 'dashboard', label: 'My Timetable', icon: Calendar },
         { id: 'assignments', label: 'Assignments & Exams', icon: BookOpen },
+        { id: 'planner', label: 'Personal Planner', icon: Clock },
         { id: 'events', label: 'Holidays & Events', icon: CalendarRange },
       ];
     } else if (role === 'staff') {
