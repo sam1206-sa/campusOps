@@ -15,7 +15,7 @@ from pathlib import Path
 # Import sample handbook generator
 from create_sample_handbook import generate_handbook_pdf
 
-PORT = 8080
+PORT = 8081
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 CHROMA_DB_DIR = "./chroma_db"
 COLLECTION_NAME = "handbook_chunks"
