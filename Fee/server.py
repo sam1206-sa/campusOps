@@ -16,6 +16,8 @@ from typing import Any, Dict
 from fee_reminder import (
     DB_NAME,
     classify_fee_intent,
+    extract_student_id,
+    format_fee_response,
     get_all_due_soon,
     get_user_dues,
     init_db,
@@ -84,27 +86,8 @@ class FeeReminderAPIHandler(SimpleHTTPRequestHandler):
         text = payload.get("text", "")
 
         update_overdue_statuses()
-        intent = classify_fee_intent(text)
-
-        if intent == "unknown":
-            reply_text = (
-                "I couldn't quite understand your request. Are you asking when a fee is due, "
-                "or checking if you've already paid your fees?"
-            )
-            self.send_json_response({"text": reply_text, "success": True})
-            return
-
-        dues = get_user_dues(user_id)
-        if not dues:
-            reply_text = f"Good news! Student '{user_id}' has no pending or overdue fee dues."
-        else:
-            lines = [f"Fee Summary for '{user_id}':"]
-            for d in dues:
-                fee_name = d["fee_type"].replace("_", " ").title()
-                lines.append(
-                    f"• {fee_name}: ${d['amount']:.2f} | Due: {d['due_date']} | Status: {d['status'].upper()}"
-                )
-            reply_text = "\n".join(lines)
+        target_user_id = extract_student_id(text, user_id)
+        reply_text = format_fee_response(target_user_id)
 
         self.send_json_response({"text": reply_text, "success": True})
 

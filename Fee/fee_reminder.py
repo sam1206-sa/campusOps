@@ -26,8 +26,10 @@ FEE_REMINDER_SEED: str = "fee_reminder_specialist_agent_secret_seed_phrase_2026"
 AGENT_PORT: int = 8005
 AGENT_ENDPOINT: List[str] = ["http://127.0.0.1:8005/submit"]
 
+import os
+
 # Database file location
-DB_NAME: str = "fee_reminder.db"
+DB_NAME: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fee_reminder.db")
 
 # Placeholder address for Notifier agent (for future integration)
 NOTIFIER_ADDRESS: str = "agent1q_notifier_placeholder_address_for_campus_system"
@@ -159,6 +161,34 @@ def init_db(db_path: str = DB_NAME) -> None:
 # ==============================================================================
 # SECTION 5: CORE LOGIC & HELPER FUNCTIONS
 # ==============================================================================
+import re
+
+def extract_student_id(text: str, default_user_id: str) -> str:
+    """
+    Extracts student ID from query text if present (e.g. student_101, student 102, 103),
+    otherwise returns default_user_id.
+    """
+    clean = text.strip()
+
+    # Match pattern like student_101, student 101, student101
+    match = re.search(r"student[_\s]?(\d+)", clean, re.IGNORECASE)
+    if match:
+        return f"student_{match.group(1)}"
+
+    # Match direct numbers like 101, 102, 103
+    match_num = re.search(r"\b(10[1-9])\b", clean)
+    if match_num:
+        return f"student_{match_num.group(1)}"
+
+    # Match words starting with student_
+    for word in clean.split():
+        w = word.strip(",.!?\"'").lower()
+        if w.startswith("student_"):
+            return w
+
+    return default_user_id
+
+
 def classify_fee_intent(text: str) -> str:
     """
     Classify user query text into fee intent categories.
@@ -171,15 +201,17 @@ def classify_fee_intent(text: str) -> str:
     """
     clean_text = text.lower()
 
-    due_keywords = ["when", "due", "deadline", "how much"]
+    due_keywords = ["when", "due", "deadline", "how much", "pending", "fee", "student", "pay", "balance", "list"]
     status_keywords = ["did i pay", "have i paid", "status", "paid or not"]
 
-    # We evaluate status keywords first to catch explicit payment checks
     if any(kw in clean_text for kw in status_keywords):
         return "check_status"
 
-    # Evaluate due keywords next for deadline and amount queries
     if any(kw in clean_text for kw in due_keywords):
+        return "check_due"
+
+    # Also match student ID format like student_101 or 101 directly
+    if re.search(r"student|10[1-9]", clean_text):
         return "check_due"
 
     return "unknown"
@@ -195,13 +227,10 @@ def update_overdue_statuses(db_path: str = DB_NAME) -> None:
     Returns:
         None
     """
-    # ISO date string comparison works directly with YYYY-MM-DD format in SQLite
     today_str = datetime.date.today().isoformat()
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            # Transition status from 'pending' to 'overdue' dynamically whenever
-            # the current date is strictly after the fee's due_date.
             cursor.execute("""
                 UPDATE fees
                 SET status = 'overdue'
@@ -212,39 +241,99 @@ def update_overdue_statuses(db_path: str = DB_NAME) -> None:
         logger.error(f"Failed to update overdue fee statuses: {err}")
 
 
-def get_user_dues(user_id: str, db_path: str = DB_NAME) -> List[Dict[str, Any]]:
+def get_student_fee_summary(user_id: str, db_path: str = DB_NAME) -> Dict[str, Any]:
     """
-    Fetch all unpaid fees for a given student ID.
-
-    Args:
-        user_id: Student identification string.
-        db_path: Path to SQLite database file.
-
-    Returns:
-        List of fee detail dictionaries ordered by due date.
+    Fetch all fees for student (pending, overdue, paid) and calculate pending & paid totals.
     """
-    dues: List[Dict[str, Any]] = []
+    update_overdue_statuses(db_path)
+    fees: List[Dict[str, Any]] = []
+    total_pending = 0.0
+    total_paid = 0.0
+    actual_user_id = user_id
+
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
-            # Fetch pending or overdue fees, excluding already paid fees
             cursor.execute("""
-                SELECT fee_type, amount, due_date, status
+                SELECT fee_type, amount, due_date, status, user_id
                 FROM fees
-                WHERE user_id = ? AND status != 'paid'
+                WHERE LOWER(user_id) = LOWER(?)
                 ORDER BY due_date ASC
             """, (user_id,))
-            for row in cursor.fetchall():
-                dues.append({
+            rows = cursor.fetchall()
+
+            # If exact match not found, try searching by LIKE %user_id%
+            if not rows:
+                cursor.execute("""
+                    SELECT fee_type, amount, due_date, status, user_id
+                    FROM fees
+                    WHERE LOWER(user_id) LIKE LOWER(?)
+                    ORDER BY due_date ASC
+                """, (f"%{user_id}%",))
+                like_rows = cursor.fetchall()
+                if like_rows:
+                    actual_user_id = like_rows[0][4]
+                    rows = like_rows
+
+            for row in rows:
+                amt = float(row[1])
+                st = row[3]
+                if st in ('pending', 'overdue'):
+                    total_pending += amt
+                elif st == 'paid':
+                    total_paid += amt
+
+                fees.append({
                     "fee_type": row[0],
-                    "amount": row[1],
+                    "amount": amt,
                     "due_date": row[2],
-                    "status": row[3],
+                    "status": st
                 })
     except sqlite3.Error as err:
-        logger.error(f"Error fetching dues for user '{user_id}': {err}")
+        logger.error(f"Error fetching fee summary for '{user_id}': {err}")
 
-    return dues
+    return {
+        "user_id": actual_user_id,
+        "fees": fees,
+        "total_pending": total_pending,
+        "total_paid": total_paid
+    }
+
+
+def format_fee_response(user_id: str, db_path: str = DB_NAME) -> str:
+    """Format full fee summary with pending totals and itemized breakdown."""
+    summary = get_student_fee_summary(user_id, db_path)
+    actual_user_id = summary["user_id"]
+    fees = summary["fees"]
+    total_pending = summary["total_pending"]
+
+    if not fees:
+        return f"No fee records found for student '{actual_user_id}'. Current Pending Balance: $0.00"
+
+    lines = [
+        f"Fee Summary & Dues for '{actual_user_id}':",
+        f"- Total Pending Balance: ${total_pending:,.2f}",
+        "",
+        "Detailed Fee Breakdown:"
+    ]
+
+    for f in fees:
+        fee_name = f["fee_type"].replace("_", " ").title()
+        status_symbol = "[OVERDUE]" if f["status"] == "overdue" else ("[PENDING]" if f["status"] == "pending" else "[PAID]")
+        lines.append(
+            f"  - {fee_name}: ${f['amount']:,.2f} | Due: {f['due_date']} | Status: {status_symbol}"
+        )
+
+    return "\n".join(lines)
+
+
+def get_user_dues(user_id: str, db_path: str = DB_NAME) -> List[Dict[str, Any]]:
+    """
+    Fetch all unpaid fees for a given student ID.
+    """
+    summary = get_student_fee_summary(user_id, db_path)
+    return [f for f in summary["fees"] if f["status"] != "paid"]
+
 
 
 def get_all_due_soon(days_ahead: int = 7, db_path: str = DB_NAME) -> List[Dict[str, Any]]:
@@ -304,34 +393,10 @@ async def handle_fee_query(ctx: Context, sender: str, msg: FeeQuery) -> None:
         None
     """
     try:
-        # Refresh database statuses so past-due fees are correctly marked 'overdue'
         update_overdue_statuses()
 
-        intent = classify_fee_intent(msg.text)
-        ctx.logger.info(
-            f"Query from '{msg.user_id}': '{msg.text}' -> Classified: '{intent}'"
-        )
-
-        if intent == "unknown":
-            reply_text = (
-                "I couldn't quite understand your request. Are you asking when a fee is due, "
-                "or checking if you've already paid your fees?"
-            )
-            await ctx.send(sender, FeeReply(text=reply_text, success=True))
-            return
-
-        # Fetch dues for student
-        dues = get_user_dues(msg.user_id)
-        if not dues:
-            reply_text = f"Good news! Student '{msg.user_id}' has no pending or overdue fee dues."
-        else:
-            lines = [f"Fee Summary for '{msg.user_id}':"]
-            for d in dues:
-                fee_name = d["fee_type"].replace("_", " ").title()
-                lines.append(
-                    f"• {fee_name}: ${d['amount']:.2f} | Due: {d['due_date']} | Status: {d['status'].upper()}"
-                )
-            reply_text = "\n".join(lines)
+        target_user_id = extract_student_id(msg.text, msg.user_id)
+        reply_text = format_fee_response(target_user_id)
 
         await ctx.send(sender, FeeReply(text=reply_text, success=True))
 

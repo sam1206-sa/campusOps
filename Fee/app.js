@@ -447,23 +447,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateFallbackReply(userId, text) {
-        const clean = text.lower ? text.lower() : text.toLowerCase();
-        if (clean.includes('when') || clean.includes('due') || clean.includes('deadline') || clean.includes('how much')) {
+        const clean = text.toLowerCase();
+        let targetId = userId;
+        const match = clean.match(/student[_\s]?(\d+)/) || clean.match(/\b(10[1-9])\b/);
+        if (match) {
+            targetId = `student_${match[1]}`;
+        }
+
+        if (targetId === 'student_102') {
             return {
-                text: `Fee Summary for '${userId}':\n• Tuition: $1500.00 | Due: ${getOffsetDate(-10)} | Status: OVERDUE\n• Library Fine: $15.50 | Due: ${getOffsetDate(3)} | Status: PENDING`,
+                text: `📊 Fee Summary & Dues for 'student_102':\n💰 Total Pending Balance: $800.00\n\nDetailed Fee Breakdown:\n  • Exam Fee: $120.00 | Due: ${getOffsetDate(-10)} | Status: 🟢 PAID\n  • Hostel Fee: $800.00 | Due: ${getOffsetDate(5)} | Status: 🟡 PENDING`,
+                success: true
+            };
+        } else if (targetId === 'student_103') {
+            return {
+                text: `📊 Fee Summary & Dues for 'student_103':\n💰 Total Pending Balance: $2,350.00\n\nDetailed Fee Breakdown:\n  • Hostel Fee: $850.00 | Due: ${getOffsetDate(-10)} | Status: 🔴 OVERDUE\n  • Tuition Fee: $1,500.00 | Due: ${getOffsetDate(25)} | Status: 🟡 PENDING`,
+                success: true
+            };
+        } else {
+            return {
+                text: `📊 Fee Summary & Dues for 'student_101':\n💰 Total Pending Balance: $1,515.50\n\nDetailed Fee Breakdown:\n  • Tuition Fee: $1,500.00 | Due: ${getOffsetDate(-10)} | Status: 🔴 OVERDUE\n  • Library Fine: $15.50 | Due: ${getOffsetDate(3)} | Status: 🟡 PENDING`,
                 success: true
             };
         }
-        if (clean.includes('paid') || clean.includes('status')) {
-            return {
-                text: `Fee Summary for '${userId}':\n• Tuition: $1500.00 | Status: OVERDUE\n• Exam Fee: $120.00 | Status: PAID`,
-                success: true
-            };
-        }
-        return {
-            text: "I couldn't quite understand your request. Are you asking when a fee is due, or checking if you've already paid your fees?",
-            success: true
-        };
     }
 
     // Initial Load
