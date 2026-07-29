@@ -123,12 +123,12 @@ def extract_request_id(text: str) -> Optional[int]:
 
 def classify_document_intent(text: str) -> str:
     """
-    Determine if user wants a new request, status check, admin command, or unknown intent.
+    Determine if user wants a new request, status check, admin command, or campus operations queries.
     
     Args:
         text (str): Incoming message text.
     Returns:
-        str: Intent classification string ('new_request', 'check_status', 'admin_command', 'unknown').
+        str: Intent classification string.
     """
     text_lower = text.lower()
     doc_type = classify_document_type(text_lower)
@@ -148,6 +148,16 @@ def classify_document_intent(text: str) -> str:
     new_keywords = ["need", "want", "apply for", "request", "apply"]
     if any(kw in text_lower for kw in new_keywords) and doc_type:
         return "new_request"
+        
+    # General Campus Operations Categories
+    if any(kw in text_lower for kw in ["exam", "timetable", "schedule", "semester"]):
+        return "exams"
+    if any(kw in text_lower for kw in ["wifi", "repair", "plumbing", "maintenance", "broken"]):
+        return "repairs"
+    if any(kw in text_lower for kw in ["rule", "policy", "gate", "timing", "out-pass", "permission"]):
+        return "rules"
+    if any(kw in text_lower for kw in ["announcement", "notice", "alert"]):
+        return "announcements"
         
     return "unknown"
 
@@ -344,6 +354,46 @@ async def handle_document_query(ctx: Context, sender: str, msg: DocumentQuery) -
                 "Understood. If you need a document, please state what type you require "
                 "(bonafide certificate, transcript, fee receipt, course completion letter). "
                 "If searching for an existing request, specify the request ID or type 'status'."
+            )
+            await ctx.send(sender, DocumentReply(text=reply_text, success=True))
+            return
+
+        if intent == "exams":
+            reply_text = (
+                "**Semester Exam Schedule & Timetable**:\n"
+                "- The Anna University CBCS Semester Exams are scheduled to begin on **November 10th**.\n"
+                "- Detailed department timetables and room allocations are posted on academic notice boards.\n"
+                "- Please ensure all semester tuition dues are cleared to download your digital hall ticket."
+            )
+            await ctx.send(sender, DocumentReply(text=reply_text, success=True))
+            return
+
+        if intent == "repairs":
+            reply_text = (
+                "**WiFi & Campus Maintenance Desk**:\n"
+                "- **WiFi Latency/Range Problems**: Report at the Warden Office or mail `hostel-net@college.edu`.\n"
+                "- **Plumbing/Electrical issues**: Call extensions 401 (Plumbing) or 402 (Electrical).\n"
+                "- Maintenance tickets are resolved within **24 hours** from submission."
+            )
+            await ctx.send(sender, DocumentReply(text=reply_text, success=True))
+            return
+
+        if intent == "rules":
+            reply_text = (
+                "**Hostel Gate Timings & Regulations**:\n"
+                "- **Gate Deadline**: Entry scanners close at **8:30 PM** sharp daily.\n"
+                "- **Out-Pass requests**: Weekly outing pass requests require counselor approval by **Wednesday** noon.\n"
+                "- **Emergency passes**: Contact the Head Warden directly for emergency leave."
+            )
+            await ctx.send(sender, DocumentReply(text=reply_text, success=True))
+            return
+
+        if intent == "announcements":
+            reply_text = (
+                "**Current Announcements & Alerts Noticeboard**:\n"
+                "1. **Continuous Assessment Test II** (CAT-2) schedules are sent to student profiles.\n"
+                "2. **Zoho Recruitments**: Campus hiring interview cycles begin Friday in the main auditorium.\n"
+                "3. **Mess Feedback**: Special feedback forms for weekly menu recommendations are live."
             )
             await ctx.send(sender, DocumentReply(text=reply_text, success=True))
             return
