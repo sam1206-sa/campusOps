@@ -16,10 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const navTabs = document.querySelectorAll('.nav-tab');
     const tabPanes = document.querySelectorAll('.tab-pane');
     
-    // Chat Elements
-    const userIdSelect = document.getElementById('user-id-select');
-    const customUserGroup = document.getElementById('custom-user-group');
-    const customUserIdInput = document.getElementById('custom-user-id');
+    // Student Search & Form Elements
+    const studentSearchForm = document.getElementById('student-search-form');
+    const studentNameInput = document.getElementById('student-name-input');
+    const registerNoInput = document.getElementById('register-no-input');
+    const presetButtons = document.querySelectorAll('.btn-preset');
+    const activeStudentBadge = document.getElementById('active-student-badge');
+    const bannerStudentName = document.getElementById('banner-student-name');
+    const bannerStudentReg = document.getElementById('banner-student-reg');
+    const bannerPendingAmount = document.getElementById('banner-pending-amount');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatMessages = document.getElementById('chat-messages');
@@ -69,41 +74,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 2. Student Selection Logic
+    // 2. Preset Student Buttons & Form Handler
     // =========================================================================
-    userIdSelect.addEventListener('change', (e) => {
-        if (e.target.value === 'custom') {
-            customUserGroup.classList.remove('hidden');
-            currentUserId = customUserIdInput.value.trim() || 'student_custom';
-        } else {
-            customUserGroup.classList.add('hidden');
-            currentUserId = e.target.value;
-        }
+    presetButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            presetButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const sName = btn.getAttribute('data-name');
+            const sReg = btn.getAttribute('data-reg');
+            const sId = btn.getAttribute('data-id');
+
+            studentNameInput.value = sName;
+            registerNoInput.value = sReg;
+            currentUserId = sId;
+
+            performStudentSearch(`Fetch complete fee statement for ${sName} (${sReg})`);
+        });
     });
 
-    customUserIdInput.addEventListener('input', (e) => {
-        currentUserId = e.target.value.trim() || 'student_custom';
+    studentSearchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const sName = studentNameInput.value.trim();
+        const sReg = registerNoInput.value.trim();
+        performStudentSearch(`Check fee statement for ${sName} (${sReg})`);
     });
 
     chipButtons.forEach(chip => {
         chip.addEventListener('click', () => {
             const queryText = chip.getAttribute('data-query');
             chatInput.value = queryText;
-            chatForm.dispatchEvent(new Event('submit'));
+            performStudentSearch(queryText);
         });
     });
 
     // =========================================================================
-    // 3. Interactive Agent Query (Chat Flow)
+    // 3. Interactive Student Search & Query Handler
     // =========================================================================
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = chatInput.value.trim();
         if (!text) return;
-
-        // Append User Message to Chat
-        appendChatMessage('user', text, currentUserId);
         chatInput.value = '';
+        performStudentSearch(text);
+    });
+
+    async function performStudentSearch(customQueryText = '') {
+        const studentName = studentNameInput.value.trim() || 'Alex Johnson';
+        const registerNo = registerNoInput.value.trim() || '7376241CS101';
+        const queryText = customQueryText || `Check fee details for ${studentName} (${registerNo})`;
+
+        // Append User Question to Stream
+        appendChatMessage('user', queryText, `${studentName} (${registerNo})`);
 
         // Show typing indicator
         const typingId = appendTypingIndicator();
@@ -112,7 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE}/api/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: currentUserId, text: text })
+                body: JSON.stringify({
+                    student_name: studentName,
+                    register_no: registerNo,
+                    user_id: currentUserId,
+                    text: queryText
+                })
             });
 
             removeTypingIndicator(typingId);
@@ -122,22 +149,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
+            
+            // Update Right Side Output Statement Banner
+            if (data.summary) {
+                const sum = data.summary;
+                bannerStudentName.textContent = sum.student_name || studentName;
+                bannerStudentReg.innerHTML = `<i class="fa-solid fa-hashtag"></i> Register No: <strong>${sum.register_no || registerNo}</strong> &bull; ID: <code>${sum.user_id || currentUserId}</code>`;
+                bannerPendingAmount.textContent = `$${(sum.total_pending || 0).toFixed(2)}`;
+                activeStudentBadge.textContent = `${sum.student_name || studentName} | ${sum.register_no || registerNo}`;
+            }
+
             appendChatMessage('agent', data.text, 'Fee Reminder Agent', data.success);
 
-            // Auto refresh DB dashboard if query modified overdue statuses
+            // Auto refresh DB dashboard
             fetchDatabaseRecords();
 
         } catch (err) {
             removeTypingIndicator(typingId);
             console.warn('API connection offline, using client fallback demo handler:', err);
             
-            // Client fallback logic if standalone static view is opened without server.py
             setTimeout(() => {
-                const fallbackReply = generateFallbackReply(currentUserId, text);
+                const fallbackReply = generateFallbackReply(currentUserId, queryText, studentName, registerNo);
+                
+                // Update banner fallback
+                bannerStudentName.textContent = studentName;
+                bannerStudentReg.innerHTML = `<i class="fa-solid fa-hashtag"></i> Register No: <strong>${registerNo}</strong> &bull; ID: <code>${currentUserId}</code>`;
+                activeStudentBadge.textContent = `${studentName} | ${registerNo}`;
+                
                 appendChatMessage('agent', fallbackReply.text, 'Fee Reminder Agent (Local Demo)');
-            }, 600);
+            }, 500);
         }
-    });
+    }
 
     function appendChatMessage(senderType, messageText, label = '', isSuccess = true) {
         const msgDiv = document.createElement('div');
@@ -446,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return d.toISOString().split('T')[0];
     }
 
-    function generateFallbackReply(userId, text) {
+    function generateFallbackReply(userId, text, studentName = 'Alex Johnson', registerNo = '7376241CS101') {
         const clean = text.toLowerCase();
         let targetId = userId;
         const match = clean.match(/student[_\s]?(\d+)/) || clean.match(/\b(10[1-9])\b/);
@@ -454,19 +496,26 @@ document.addEventListener('DOMContentLoaded', () => {
             targetId = `student_${match[1]}`;
         }
 
+        let name = studentName;
+        let reg = registerNo;
+
         if (targetId === 'student_102') {
+            name = studentName !== 'Alex Johnson' ? studentName : 'Sarah Miller';
+            reg = registerNo !== '7376241CS101' ? registerNo : '7376241CS102';
             return {
-                text: `📊 Fee Summary & Dues for 'student_102':\n💰 Total Pending Balance: $800.00\n\nDetailed Fee Breakdown:\n  • Exam Fee: $120.00 | Due: ${getOffsetDate(-10)} | Status: 🟢 PAID\n  • Hostel Fee: $800.00 | Due: ${getOffsetDate(5)} | Status: 🟡 PENDING`,
+                text: `Fee Summary & Statement for Student: ${name} | Reg No: ${reg} (${targetId})\n- Total Pending Balance: $800.00\n\nDetailed Fee Breakdown:\n  - Exam Fee: $120.00 | Due: ${getOffsetDate(-10)} | Status: [PAID]\n  - Hostel Fee: $800.00 | Due: ${getOffsetDate(5)} | Status: [PENDING]`,
                 success: true
             };
         } else if (targetId === 'student_103') {
+            name = studentName !== 'Alex Johnson' ? studentName : 'David Kumar';
+            reg = registerNo !== '7376241CS101' ? registerNo : '7376241CS103';
             return {
-                text: `📊 Fee Summary & Dues for 'student_103':\n💰 Total Pending Balance: $2,350.00\n\nDetailed Fee Breakdown:\n  • Hostel Fee: $850.00 | Due: ${getOffsetDate(-10)} | Status: 🔴 OVERDUE\n  • Tuition Fee: $1,500.00 | Due: ${getOffsetDate(25)} | Status: 🟡 PENDING`,
+                text: `Fee Summary & Statement for Student: ${name} | Reg No: ${reg} (${targetId})\n- Total Pending Balance: $2,350.00\n\nDetailed Fee Breakdown:\n  - Hostel Fee: $850.00 | Due: ${getOffsetDate(-10)} | Status: [OVERDUE]\n  - Tuition Fee: $1,500.00 | Due: ${getOffsetDate(25)} | Status: [PENDING]`,
                 success: true
             };
         } else {
             return {
-                text: `📊 Fee Summary & Dues for 'student_101':\n💰 Total Pending Balance: $1,515.50\n\nDetailed Fee Breakdown:\n  • Tuition Fee: $1,500.00 | Due: ${getOffsetDate(-10)} | Status: 🔴 OVERDUE\n  • Library Fine: $15.50 | Due: ${getOffsetDate(3)} | Status: 🟡 PENDING`,
+                text: `Fee Summary & Statement for Student: ${name} | Reg No: ${reg} (${targetId})\n- Total Pending Balance: $1,515.50\n\nDetailed Fee Breakdown:\n  - Tuition Fee: $1,500.00 | Due: ${getOffsetDate(-10)} | Status: [OVERDUE]\n  - Library Fine: $15.50 | Due: ${getOffsetDate(3)} | Status: [PENDING]`,
                 success: true
             };
         }

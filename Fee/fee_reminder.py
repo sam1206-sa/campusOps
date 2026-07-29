@@ -114,6 +114,8 @@ def init_db(db_path: str = DB_NAME) -> None:
                 CREATE TABLE IF NOT EXISTS fees (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id TEXT NOT NULL,
+                    student_name TEXT,
+                    register_no TEXT,
                     fee_type TEXT NOT NULL,
                     amount REAL NOT NULL,
                     due_date TEXT NOT NULL,
@@ -122,35 +124,46 @@ def init_db(db_path: str = DB_NAME) -> None:
                 )
             """)
 
+            # Migration: Ensure student_name & register_no columns exist
+            cursor.execute("PRAGMA table_info(fees)")
+            cols = [c[1] for c in cursor.fetchall()]
+            if "student_name" not in cols:
+                cursor.execute("ALTER TABLE fees ADD COLUMN student_name TEXT")
+            if "register_no" not in cols:
+                cursor.execute("ALTER TABLE fees ADD COLUMN register_no TEXT")
+
             cursor.execute("SELECT COUNT(*) FROM fees")
             count = cursor.fetchone()[0]
 
-            # Seed sample data if table is completely empty
+            # Seed sample data if table is empty
             if count == 0:
                 today = datetime.date.today()
-                # Dynamically calculate relative dates so seed data stays relevant whenever run
                 past_due = (today - datetime.timedelta(days=10)).isoformat()
                 due_soon_1 = (today + datetime.timedelta(days=3)).isoformat()
                 due_soon_2 = (today + datetime.timedelta(days=5)).isoformat()
                 due_later = (today + datetime.timedelta(days=25)).isoformat()
 
                 sample_fees = [
-                    ("student_101", "tuition", 1500.00, past_due, "pending", None),
-                    ("student_101", "library_fine", 15.50, due_soon_1, "pending", None),
-                    ("student_102", "hostel", 800.00, due_soon_2, "pending", None),
-                    ("student_102", "exam", 120.00, past_due, "paid", None),
-                    ("student_103", "tuition", 1500.00, due_later, "pending", None),
-                    ("student_103", "hostel", 850.00, past_due, "overdue", None),
+                    ("student_101", "Alex Johnson", "7376241CS101", "tuition", 1500.00, past_due, "pending", None),
+                    ("student_101", "Alex Johnson", "7376241CS101", "library_fine", 15.50, due_soon_1, "pending", None),
+                    ("student_102", "Sarah Miller", "7376241CS102", "hostel", 800.00, due_soon_2, "pending", None),
+                    ("student_102", "Sarah Miller", "7376241CS102", "exam", 120.00, past_due, "paid", None),
+                    ("student_103", "David Kumar", "7376241CS103", "tuition", 1500.00, due_later, "pending", None),
+                    ("student_103", "David Kumar", "7376241CS103", "hostel", 850.00, past_due, "overdue", None),
                 ]
 
-                # Use parameterized query to insert records safely
                 cursor.executemany("""
-                    INSERT INTO fees (user_id, fee_type, amount, due_date, status, last_reminded)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO fees (user_id, student_name, register_no, fee_type, amount, due_date, status, last_reminded)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, sample_fees)
                 conn.commit()
                 logger.info(f"Database initialized with {len(sample_fees)} sample records.")
             else:
+                # Update existing null student_name / register_no values for sample records
+                cursor.execute("UPDATE fees SET student_name='Alex Johnson', register_no='7376241CS101' WHERE user_id='student_101' AND (student_name IS NULL OR register_no IS NULL)")
+                cursor.execute("UPDATE fees SET student_name='Sarah Miller', register_no='7376241CS102' WHERE user_id='student_102' AND (student_name IS NULL OR register_no IS NULL)")
+                cursor.execute("UPDATE fees SET student_name='David Kumar', register_no='7376241CS103' WHERE user_id='student_103' AND (student_name IS NULL OR register_no IS NULL)")
+                conn.commit()
                 logger.info(f"Database initialized. Found {count} existing records.")
 
     except sqlite3.Error as err:
@@ -241,39 +254,48 @@ def update_overdue_statuses(db_path: str = DB_NAME) -> None:
         logger.error(f"Failed to update overdue fee statuses: {err}")
 
 
-def get_student_fee_summary(user_id: str, db_path: str = DB_NAME) -> Dict[str, Any]:
+def get_student_fee_summary(user_id: str, student_name: str = None, register_no: str = None, db_path: str = DB_NAME) -> Dict[str, Any]:
     """
-    Fetch all fees for student (pending, overdue, paid) and calculate pending & paid totals.
+    Fetch all fees for student matching user_id, student_name, or register_no.
+    Calculates total pending and paid fees.
     """
     update_overdue_statuses(db_path)
     fees: List[Dict[str, Any]] = []
     total_pending = 0.0
     total_paid = 0.0
     actual_user_id = user_id
+    actual_name = student_name or ""
+    actual_reg = register_no or ""
 
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
+            
+            # Query by user_id, register_no, or student_name
             cursor.execute("""
-                SELECT fee_type, amount, due_date, status, user_id
+                SELECT fee_type, amount, due_date, status, user_id, student_name, register_no
                 FROM fees
                 WHERE LOWER(user_id) = LOWER(?)
+                   OR (register_no IS NOT NULL AND LOWER(register_no) = LOWER(?))
+                   OR (student_name IS NOT NULL AND LOWER(student_name) LIKE LOWER(?))
                 ORDER BY due_date ASC
-            """, (user_id,))
+            """, (user_id, register_no or user_id, f"%{student_name or user_id}%"))
             rows = cursor.fetchall()
 
-            # If exact match not found, try searching by LIKE %user_id%
+            # Fallback search if exact match empty
             if not rows:
                 cursor.execute("""
-                    SELECT fee_type, amount, due_date, status, user_id
+                    SELECT fee_type, amount, due_date, status, user_id, student_name, register_no
                     FROM fees
-                    WHERE LOWER(user_id) LIKE LOWER(?)
+                    WHERE LOWER(user_id) LIKE LOWER(?) OR (register_no IS NOT NULL AND LOWER(register_no) LIKE LOWER(?))
                     ORDER BY due_date ASC
-                """, (f"%{user_id}%",))
-                like_rows = cursor.fetchall()
-                if like_rows:
-                    actual_user_id = like_rows[0][4]
-                    rows = like_rows
+                """, (f"%{user_id}%", f"%{user_id}%"))
+                rows = cursor.fetchall()
+
+            if rows:
+                actual_user_id = rows[0][4]
+                actual_name = rows[0][5] or actual_name or actual_user_id
+                actual_reg = rows[0][6] or actual_reg or "N/A"
 
             for row in rows:
                 amt = float(row[1])
@@ -290,28 +312,37 @@ def get_student_fee_summary(user_id: str, db_path: str = DB_NAME) -> Dict[str, A
                     "status": st
                 })
     except sqlite3.Error as err:
-        logger.error(f"Error fetching fee summary for '{user_id}': {err}")
+        logger.error(f"Error fetching fee summary: {err}")
+
+    if not actual_name:
+        actual_name = actual_user_id.replace("_", " ").title()
 
     return {
         "user_id": actual_user_id,
+        "student_name": actual_name,
+        "register_no": actual_reg,
         "fees": fees,
         "total_pending": total_pending,
         "total_paid": total_paid
     }
 
 
-def format_fee_response(user_id: str, db_path: str = DB_NAME) -> str:
-    """Format full fee summary with pending totals and itemized breakdown."""
-    summary = get_student_fee_summary(user_id, db_path)
-    actual_user_id = summary["user_id"]
+def format_fee_response(user_id: str, student_name: str = None, register_no: str = None, db_path: str = DB_NAME) -> str:
+    """Format full fee summary with Student Name, Register Number, pending totals, and itemized breakdown."""
+    summary = get_student_fee_summary(user_id, student_name, register_no, db_path)
+    s_name = summary["student_name"]
+    s_reg = summary["register_no"]
+    u_id = summary["user_id"]
     fees = summary["fees"]
     total_pending = summary["total_pending"]
 
     if not fees:
-        return f"No fee records found for student '{actual_user_id}'. Current Pending Balance: $0.00"
+        reg_str = f" (Reg No: {s_reg})" if s_reg else ""
+        return f"No fee records found for student '{s_name}'{reg_str}. Current Pending Balance: $0.00"
 
+    reg_display = f" | Reg No: {s_reg}" if s_reg and s_reg != "N/A" else ""
     lines = [
-        f"Fee Summary & Dues for '{actual_user_id}':",
+        f"Fee Summary & Statement for Student: {s_name}{reg_display} ({u_id})",
         f"- Total Pending Balance: ${total_pending:,.2f}",
         "",
         "Detailed Fee Breakdown:"

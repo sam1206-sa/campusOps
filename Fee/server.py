@@ -80,16 +80,26 @@ class FeeReminderAPIHandler(SimpleHTTPRequestHandler):
 
     def handle_query(self, payload: Dict[str, Any]) -> None:
         """
-        Process FeeQuery API call matching handle_fee_query logic.
+        Process FeeQuery API call with student_name, register_no, and text query.
         """
         user_id = payload.get("user_id", "student_101")
+        student_name = payload.get("student_name", "")
+        register_no = payload.get("register_no", "")
         text = payload.get("text", "")
 
         update_overdue_statuses()
         target_user_id = extract_student_id(text, user_id)
-        reply_text = format_fee_response(target_user_id)
+        
+        # Import summary dictionary getter
+        from fee_reminder import get_student_fee_summary
+        summary = get_student_fee_summary(target_user_id, student_name, register_no)
+        reply_text = format_fee_response(target_user_id, student_name, register_no)
 
-        self.send_json_response({"text": reply_text, "success": True})
+        self.send_json_response({
+            "text": reply_text,
+            "success": True,
+            "summary": summary
+        })
 
     def handle_get_fees(self) -> None:
         """Fetch all fee records from SQLite DB for dashboard view."""
@@ -98,15 +108,17 @@ class FeeReminderAPIHandler(SimpleHTTPRequestHandler):
         try:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT id, user_id, fee_type, amount, due_date, status FROM fees ORDER BY id ASC")
+                cursor.execute("SELECT id, user_id, student_name, register_no, fee_type, amount, due_date, status FROM fees ORDER BY id ASC")
                 for row in cursor.fetchall():
                     fees_list.append({
                         "id": row[0],
                         "user_id": row[1],
-                        "fee_type": row[2],
-                        "amount": row[3],
-                        "due_date": row[4],
-                        "status": row[5]
+                        "student_name": row[2] or row[1],
+                        "register_no": row[3] or "N/A",
+                        "fee_type": row[4],
+                        "amount": row[5],
+                        "due_date": row[6],
+                        "status": row[7]
                     })
         except sqlite3.Error as err:
             logger.error(f"DB Error reading fees: {err}")

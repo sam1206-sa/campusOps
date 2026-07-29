@@ -48,61 +48,105 @@
         <!-- Main Content Container -->
         <main class="content-area">
             
-            <!-- SECTION 1: STUDENT QUERY PORTAL (CHAT) -->
+            <!-- SECTION 1: STUDENT QUERY PORTAL -->
             <section id="tab-chat" class="tab-pane active">
                 <div class="portal-grid">
-                    <!-- Left Sidebar: Student Selector & Preset Queries -->
+                    <!-- Left Sidebar: Student Details Input & Preset Options -->
                     <div class="card sidebar-card">
                         <div class="card-header">
-                            <i class="fa-solid fa-user-graduate"></i>
-                            <h3>Student Profile</h3>
+                            <i class="fa-solid fa-address-card"></i>
+                            <h3>Student Fee Search</h3>
                         </div>
                         <div class="card-body">
-                            <div class="form-group">
-                                <label for="user-id-select">Select Student ID:</label>
-                                <div class="custom-select-wrapper">
-                                    <select id="user-id-select" class="form-control">
-                                        <option value="student_101">student_101 (Tuition overdue, Library fine due soon)</option>
-                                        <option value="student_102">student_102 (Hostel fee due soon, Exam fee paid)</option>
-                                        <option value="student_103">student_103 (Hostel overdue, Tuition due later)</option>
-                                        <option value="custom">Custom Student ID...</option>
-                                    </select>
+                            <form id="student-search-form">
+                                <!-- Student Name Input -->
+                                <div class="form-group">
+                                    <label for="student-name-input"><i class="fa-solid fa-user"></i> Student Name:</label>
+                                    <input 
+                                        type="text" 
+                                        id="student-name-input" 
+                                        class="form-control" 
+                                        placeholder="e.g. Alex Johnson" 
+                                        value="Alex Johnson" 
+                                        required 
+                                    />
                                 </div>
-                            </div>
 
-                            <div class="form-group hidden" id="custom-user-group">
-                                <label for="custom-user-id">Custom Student ID:</label>
-                                <input type="text" id="custom-user-id" class="form-control" placeholder="e.g. student_999">
-                            </div>
+                                <!-- Register Number Input -->
+                                <div class="form-group">
+                                    <label for="register-no-input"><i class="fa-solid fa-id-card"></i> Register Number:</label>
+                                    <input 
+                                        type="text" 
+                                        id="register-no-input" 
+                                        class="form-control" 
+                                        placeholder="e.g. 7376241CS101" 
+                                        value="7376241CS101" 
+                                        required 
+                                    />
+                                </div>
 
-                            <div class="quick-queries-section">
-                                <label><i class="fa-solid fa-bolt"></i> Sample Prompts:</label>
+                                <!-- Quick Presets -->
+                                <div class="form-group">
+                                    <label><i class="fa-solid fa-users"></i> Quick Select Student:</label>
+                                    <div class="preset-student-buttons">
+                                        <button type="button" class="btn-preset active" data-name="Alex Johnson" data-reg="7376241CS101" data-id="student_101">
+                                            <span>Alex Johnson</span> <small>(7376241CS101)</small>
+                                        </button>
+                                        <button type="button" class="btn-preset" data-name="Sarah Miller" data-reg="7376241CS102" data-id="student_102">
+                                            <span>Sarah Miller</span> <small>(7376241CS102)</small>
+                                        </button>
+                                        <button type="button" class="btn-preset" data-name="David Kumar" data-reg="7376241CS103" data-id="student_103">
+                                            <span>David Kumar</span> <small>(7376241CS103)</small>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block" id="btn-fetch-fee">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Check Fee Details
+                                </button>
+                            </form>
+
+                            <div class="quick-queries-section" style="margin-top: 22px;">
+                                <label><i class="fa-solid fa-bolt"></i> Sample Agent Questions:</label>
                                 <div class="query-chips">
-                                    <button class="chip" data-query="when is my fee due">"When is my fee due?"</button>
+                                    <button class="chip" data-query="when is my tuition fee due">"When is tuition due?"</button>
                                     <button class="chip" data-query="how much tuition do i owe">"How much tuition do I owe?"</button>
-                                    <button class="chip" data-query="did i pay my hostel fee">"Did I pay my hostel fee?"</button>
+                                    <button class="chip" data-query="did i pay my hostel fee">"Did I pay hostel fee?"</button>
                                     <button class="chip" data-query="check my fee status">"Check my fee status"</button>
-                                    <button class="chip" data-query="what is the library fine">"What is the library fine?"</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Main: Interactive Agent Chat & Response Display -->
+                    <!-- Right Main: Fee Output Statement & Agent Output Stream -->
                     <div class="card chat-card">
                         <div class="card-header flex-between">
-                            <div>
-                                <i class="fa-solid fa-robot"></i>
-                                <h3>Agent Conversation Interface</h3>
+                            <div class="header-student-profile">
+                                <i class="fa-solid fa-receipt"></i>
+                                <h3>Student Fee Output Statement</h3>
                             </div>
-                            <span class="badge badge-info">FeeQuery -> FeeReply</span>
+                            <span class="badge badge-info" id="active-student-badge">Alex Johnson | 7376241CS101</span>
                         </div>
                         <div class="card-body chat-body">
+                            <!-- Live Output Display Card -->
+                            <div id="fee-output-banner" class="fee-output-banner">
+                                <div class="student-banner-header">
+                                    <div>
+                                        <h2 id="banner-student-name">Alex Johnson</h2>
+                                        <p id="banner-student-reg"><i class="fa-solid fa-hashtag"></i> Register No: <strong>7376241CS101</strong> &bull; ID: <code>student_101</code></p>
+                                    </div>
+                                    <div class="pending-summary-box">
+                                        <span class="pending-label">Total Pending Dues</span>
+                                        <h3 id="banner-pending-amount">$1,515.50</h3>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="chat-messages" id="chat-messages">
                                 <div class="message system-msg">
                                     <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
                                     <div class="msg-content">
-                                        <p>Hello! I am the <strong>Fee Reminder Agent</strong> (port 8005). Ask me any question regarding student fee due dates, payment statuses, or outstanding balances.</p>
+                                        <p>Enter the <strong>Student Name</strong> &amp; <strong>Register Number</strong> on the left side to fetch pending dues and fee details immediately!</p>
                                         <span class="msg-time">System Ready</span>
                                     </div>
                                 </div>
@@ -110,7 +154,7 @@
 
                             <!-- Chat Input Form -->
                             <form id="chat-form" class="chat-input-area">
-                                <input type="text" id="chat-input" placeholder="Ask a question (e.g. 'When is my tuition due?')..." required autocomplete="off">
+                                <input type="text" id="chat-input" placeholder="Ask a custom question (e.g. 'When is my tuition due?')..." required autocomplete="off">
                                 <button type="submit" class="btn btn-primary">
                                     <span>Send</span>
                                     <i class="fa-solid fa-paper-plane"></i>

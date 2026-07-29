@@ -366,11 +366,104 @@ body {
     box-shadow: 0 2px 8px rgba(132, 88, 179, 0.1);
 }
 
+.preset-student-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-preset {
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-preset span {
+    font-weight: 600;
+}
+
+.btn-preset small {
+    color: var(--text-muted);
+}
+
+.btn-preset:hover {
+    border-color: var(--primary-indigo);
+    background: rgba(132, 88, 179, 0.06);
+    color: var(--primary-indigo);
+}
+
+.btn-preset.active {
+    background: var(--gradient-primary);
+    border-color: var(--primary-indigo);
+    color: #ffffff;
+}
+
+.btn-preset.active small {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Right Side Output Banner */
+.fee-output-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.student-banner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.student-banner-header h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.student-banner-header p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.pending-summary-box {
+    text-align: right;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+}
+
+.pending-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fca5a5;
+    font-weight: 700;
+}
+
+.pending-summary-box h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #f87171;
+}
+
 /* Chat Box */
 .chat-card {
     display: flex;
     flex-direction: column;
-    height: 600px;
+    height: 650px;
     background: #ffffff;
 }
 
