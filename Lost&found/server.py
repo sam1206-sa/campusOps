@@ -27,11 +27,12 @@ os.makedirs("static", exist_ok=True)
 # PYDANTIC SCHEMAS
 # ==============================================================================
 
-class ReportRequest(Model if 'Model' in globals() else BaseModel):
+class ReportRequest(BaseModel):
     user_id: str
     text: str
     location: Optional[str] = None
     category: Optional[str] = "General"
+    report_type: Optional[str] = "auto"
 
 
 class ReportResponse(BaseModel):
@@ -79,8 +80,11 @@ init_db()
 # NLP & MATCHING LOGIC
 # ==============================================================================
 
-def classify_report_type(text: str) -> str:
-    """Classifies text into 'lost', 'found', or 'unknown'."""
+def classify_report_type(text: str, fallback_type: str = "auto") -> str:
+    """Classifies text into 'lost' or 'found'."""
+    if fallback_type in ("lost", "found"):
+        return fallback_type
+
     lowered = text.lower()
     lost_keywords = ["lost", "missing", "can't find", "cant find", "left behind", "misplaced"]
     found_keywords = ["found", "picked up", "saw a", "turned in", "located", "retrieved"]
@@ -91,7 +95,9 @@ def classify_report_type(text: str) -> str:
     for kw in found_keywords:
         if kw in lowered:
             return "found"
-    return "unknown"
+
+    # If report_type was auto and no keyword match, default to 'lost'
+    return "lost"
 
 
 def find_matches(description: str, opposite_status: str) -> List[dict]:
@@ -113,7 +119,6 @@ def find_matches(description: str, opposite_status: str) -> List[dict]:
 
     # Split into clean words
     query_words = set(re.findall(r'\w+', description.lower()))
-    # Exclude common noisy stop words for better precision
     stopwords = {"a", "an", "the", "in", "on", "at", "near", "my", "i", "is", "was", "it", "to", "for", "with", "of", "and"}
     meaningful_query = query_words - stopwords
 
@@ -122,7 +127,7 @@ def find_matches(description: str, opposite_status: str) -> List[dict]:
         item_words = set(re.findall(r'\w+', item["item_description"].lower())) - stopwords
         overlap = len(meaningful_query.intersection(item_words))
         
-        if overlap >= 2:
+        if overlap >= 1:
             item_copy = dict(item)
             item_copy["score"] = overlap
             matches.append(item_copy)
@@ -163,7 +168,7 @@ def get_stats():
     found = cursor.fetchone()[0]
     
     cursor.execute("SELECT COUNT(*) FROM items WHERE matched_id IS NOT NULL")
-    matched = cursor.fetchone()[0] // 2  # Each match links 2 items
+    matched = cursor.fetchone()[0] // 2
     
     conn.close()
     return {"total": total, "lost": lost, "found": found, "matched": matched}
@@ -172,13 +177,7 @@ def get_stats():
 @app.post("/api/report", response_model=ReportResponse)
 def submit_report(req: ReportRequest):
     """Submit a lost or found report, insert to DB, and run keyword matching."""
-    status = classify_report_type(req.text)
-    
-    if status == "unknown":
-        raise HTTPException(
-            status_code=400,
-            detail="Could not determine if item was lost or found. Please specify clearly (e.g. 'I lost my keys' or 'I found a laptop')."
-        )
+    status = classify_report_type(req.text, req.report_type)
 
     current_time = datetime.now(timezone.utc).isoformat()
     location_str = req.location.strip() if req.location else None
@@ -214,9 +213,9 @@ def submit_report(req: ReportRequest):
         conn.close()
 
         matched_item_data = top_match
-        msg = f"🎉 Great news! We found {len(candidate_matches)} match(es) for your report. Linked with Item #{matched_id}."
+        msg = f"🎉 Great news! We found a match for your report. Linked with Item #{matched_id}."
     else:
-        msg = f"Your {status} report has been recorded (ID #{new_id}). We'll notify you if a match comes up!"
+        msg = f"Your {status.upper()} report has been posted to the right side feed (Item #{new_id}). No match found yet — we'll alert you as soon as a match is reported!"
 
     return ReportResponse(
         id=new_id,

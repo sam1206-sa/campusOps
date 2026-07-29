@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // INITIALIZATION & EVENT LISTENERS
     // ==========================================================================
 
+    const reportTypeSelect = document.getElementById('report-type');
+
     fetchItemsAndStats();
 
     // Form Submission
@@ -52,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
             user_id: userIdInput.value.trim(),
             text: textInput.value.trim(),
             location: locationInput.value.trim() || null,
-            category: categorySelect.value
+            category: categorySelect.value,
+            report_type: reportTypeSelect ? reportTypeSelect.value : 'auto'
         };
 
         if (!payload.user_id || !payload.text) {
@@ -74,20 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) {
                 showToast('Classification Error', data.detail || 'Could not process report.', 'error');
+                alert(`⚠️ Error: ${data.detail || 'Could not process report.'}`);
             } else {
-                showToast('Report Saved', data.message, data.matches_found > 0 ? 'success' : 'info');
                 textInput.value = '';
                 locationInput.value = '';
                 
-                // If a match was found, pop up match modal!
-                if (data.matches_found > 0 && data.matched_item) {
-                    showMatchModal(payload, data.matched_item);
-                }
+                // Immediately refresh right side directory items & stats dashboard
+                await fetchItemsAndStats();
 
-                fetchItemsAndStats();
+                if (data.matches_found > 0 && data.matched_item) {
+                    showToast('Match Found! 🎉', data.message, 'success');
+                    showMatchModal(payload, data.matched_item);
+                } else {
+                    showToast('Report Added to Directory 📋', data.message, 'info');
+                    alert(`⚠️ No Match Found Yet!\n\nYour report for '${payload.text}' (Item #${data.id}) has been added to the right side directory feed.\n\nNo match was found in the database yet. The system will automatically alert you when a matching report is submitted!`);
+                }
             }
         } catch (err) {
             showToast('Connection Error', 'Failed to reach server.', 'error');
+            alert('⚠️ Connection Error: Failed to reach Lost & Found server.');
         } finally {
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Process & Match Report';
