@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Fee Reminder Agent Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Header -->
+        <header class="top-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Campus Fee & Payment Agent</h1>
+                    <span class="sub-title">Fetch.ai uAgents Operations System</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Main Navigation Bar -->
+        <nav class="main-nav">
+            <button class="nav-tab active" data-tab="chat">
+                <i class="fa-solid fa-comments"></i>
+                <span>Student Query Portal</span>
+            </button>
+            <button class="nav-tab" data-tab="dashboard">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Fee Records Dashboard</span>
+            </button>
+            <button class="nav-tab" data-tab="notifier">
+                <i class="fa-solid fa-bell"></i>
+                <span>Notifier Polling Inspector</span>
+            </button>
+        </nav>
+
+        <!-- Main Content Container -->
+        <main class="content-area">
+            
+            <!-- SECTION 1: STUDENT QUERY PORTAL (CHAT) -->
+            <section id="tab-chat" class="tab-pane active">
+                <div class="portal-grid">
+                    <!-- Left Sidebar: Student Selector & Preset Queries -->
+                    <div class="card sidebar-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-user-graduate"></i>
+                            <h3>Student Profile</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="user-id-select">Select Student ID:</label>
+                                <div class="custom-select-wrapper">
+                                    <select id="user-id-select" class="form-control">
+                                        <option value="student_101">student_101 (Tuition overdue, Library fine due soon)</option>
+                                        <option value="student_102">student_102 (Hostel fee due soon, Exam fee paid)</option>
+                                        <option value="student_103">student_103 (Hostel overdue, Tuition due later)</option>
+                                        <option value="custom">Custom Student ID...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group hidden" id="custom-user-group">
+                                <label for="custom-user-id">Custom Student ID:</label>
+                                <input type="text" id="custom-user-id" class="form-control" placeholder="e.g. student_999">
+                            </div>
+
+                            <div class="quick-queries-section">
+                                <label><i class="fa-solid fa-bolt"></i> Sample Prompts:</label>
+                                <div class="query-chips">
+                                    <button class="chip" data-query="when is my fee due">"When is my fee due?"</button>
+                                    <button class="chip" data-query="how much tuition do i owe">"How much tuition do I owe?"</button>
+                                    <button class="chip" data-query="did i pay my hostel fee">"Did I pay my hostel fee?"</button>
+                                    <button class="chip" data-query="check my fee status">"Check my fee status"</button>
+                                    <button class="chip" data-query="what is the library fine">"What is the library fine?"</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Main: Interactive Agent Chat & Response Display -->
+                    <div class="card chat-card">
+                        <div class="card-header flex-between">
+                            <div>
+                                <i class="fa-solid fa-robot"></i>
+                                <h3>Agent Conversation Interface</h3>
+                            </div>
+                            <span class="badge badge-info">FeeQuery -> FeeReply</span>
+                        </div>
+                        <div class="card-body chat-body">
+                            <div class="chat-messages" id="chat-messages">
+                                <div class="message system-msg">
+                                    <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+                                    <div class="msg-content">
+                                        <p>Hello! I am the <strong>Fee Reminder Agent</strong> (port 8005). Ask me any question regarding student fee due dates, payment statuses, or outstanding balances.</p>
+                                        <span class="msg-time">System Ready</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input Form -->
+                            <form id="chat-form" class="chat-input-area">
+                                <input type="text" id="chat-input" placeholder="Ask a question (e.g. 'When is my tuition due?')..." required autocomplete="off">
+                                <button type="submit" class="btn btn-primary">
+                                    <span>Send</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: FEE RECORDS DASHBOARD -->
+            <section id="tab-dashboard" class="tab-pane">
+                <!-- Metrics Bar -->
+                <div class="metrics-grid">
+                    <div class="metric-card metric-primary">
+                        <div class="metric-icon"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-label">Total Outstanding Dues</span>
+                            <h2 id="metric-total-dues">$0.00</h2>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-warning">
+                        <div class="metric-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-label">Pending Fees</span>
+                            <h2 id="metric-pending-count">0</h2>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-danger">
+                        <div class="metric-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-label">Overdue Fees</span>
+                            <h2 id="metric-overdue-count">0</h2>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-success">
+                        <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-label">Paid Records</span>
+                            <h2 id="metric-paid-count">0</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Data Table Card -->
+                <div class="card table-card">
+                    <div class="card-header flex-between">
+                        <div class="table-header-title">
+                            <i class="fa-solid fa-database"></i>
+                            <h3>SQLite Database Records (`fee_reminder.db`)</h3>
+                        </div>
+                        <div class="table-actions">
+                            <div class="filter-group">
+                                <label for="status-filter"><i class="fa-solid fa-filter"></i> Filter:</label>
+                                <select id="status-filter" class="form-control-sm">
+                                    <option value="all">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="overdue">Overdue</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="btn-refresh-db">
+                                <i class="fa-solid fa-rotate-right"></i> Refresh DB
+                            </button>
+                            <button class="btn btn-success btn-sm" id="btn-open-add-modal">
+                                <i class="fa-solid fa-plus"></i> Add Fee Record
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive">
+                        <table class="data-table" id="fees-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student ID</th>
+                                    <th>Fee Type</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fees-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center loading-cell">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Loading records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: NOTIFIER POLLING INSPECTOR -->
+            <section id="tab-notifier" class="tab-pane">
+                <div class="notifier-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-satellite-dish"></i>
+                            <h3>Simulate Notifier Polling</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="description-text">
+                                The <strong>Notifier Agent</strong> periodically sends a <code>DueFeesRequest</code> to poll the Fee Reminder Agent for fees that are past-due or due within the next <strong>7 days</strong>.
+                            </p>
+
+                            <div class="polling-controls">
+                                <div class="form-group">
+                                    <label for="polling-days">Lookahead Horizon (Days):</label>
+                                    <input type="number" id="polling-days" class="form-control" value="7" min="1" max="60">
+                                </div>
+                                <button class="btn btn-accent btn-block" id="btn-trigger-poll">
+                                    <i class="fa-solid fa-bell"></i> Send `DueFeesRequest`
+                                </button>
+                            </div>
+
+                            <div class="payload-preview-box">
+                                <h4><i class="fa-solid fa-code"></i> Request Payload (`DueFeesRequest`):</h4>
+                                <pre><code id="json-request-preview">{\n  "requester": "notifier_agent"\n}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header flex-between">
+                            <div>
+                                <i class="fa-solid fa-list-check"></i>
+                                <h3>Due Fees Flagged for Notification (`DueFeesResponse`)</h3>
+                            </div>
+                            <span class="badge badge-warning" id="flagged-count-badge">0 Flagged Dues</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="notifier-results-container" class="notifier-results-list">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <p>Click "Send DueFeesRequest" to execute the agent polling handler.</p>
+                                </div>
+                            </div>
+                        </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD FEE RECORD -->
+    <div class="modal-backdrop" id="add-fee-modal">
+        <div class="modal-content card">
+            <div class="card-header flex-between">
+                <h3><i class="fa-solid fa-plus"></i> Add New Student Fee</h3>
+                <button class="modal-close" id="btn-close-modal">&times;</button>
+            </div>
+            <div class="card-body">
+                <form id="add-fee-form">
+                    <div class="form-group">
+                        <label for="new-student-id">Student ID:</label>
+                        <input type="text" id="new-student-id" class="form-control" placeholder="e.g. student_104" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-fee-type">Fee Type:</label>
+                        <select id="new-fee-type" class="form-control" required>
+                            <option value="tuition">Tuition</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="exam">Exam</option>
+                            <option value="library_fine">Library Fine</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-amount">Amount ($):</label>
+                        <input type="number" step="0.01" id="new-amount" class="form-control" placeholder="150.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-due-date">Due Date:</label>
+                        <input type="date" id="new-due-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-status">Initial Status:</label>
+                        <select id="new-status" class="form-control" required>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Fee Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+</body>
+</html>
