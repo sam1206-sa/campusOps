@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>campusOps Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- TOP NAVBAR WITH PROMINENT SEARCH BAR -->
+        <header class="top-navbar">
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-title">
+                    <h1>campusOps</h1>
+                    <span class="sub-badge">Campus Portal</span>
+                </div>
+            </div>
+
+            <!-- TOP SEARCH BAR -->
+            <div class="search-bar-container">
+                <form id="search-form" class="search-form">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Search or ask anything (e.g., 'When is my exam?', 'Hostel WiFi broken', 'Request transcript')..." 
+                        autocomplete="off"
+                        required
+                    />
+                    <button type="submit" class="btn-search">
+                        <span>Search</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- TOP NAV RIGHT STATUS -->
+            <div class="nav-right">
+                <div class="server-pill">
+                    <span class="live-dot"></span>
+                    <span>Portal Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT BODY -->
+        <div class="body-container">
+            <!-- LEFT SIDEBAR CONTENTS -->
+            <aside class="left-sidebar">
+                <!-- Navigation Contents -->
+                <div class="sidebar-block">
+                    <h2 class="sidebar-heading"><i class="fa-solid fa-list-ul"></i> Categories</h2>
+                    <nav class="contents-menu">
+                        <button class="menu-item active" data-filter="all">
+                            <i class="fa-solid fa-border-all"></i>
+                            <span>All Queries</span>
+                        </button>
+                        <button class="menu-item" data-filter="scheduler" data-prompt="When is the math exam timetable releasing?">
+                            <i class="fa-regular fa-calendar-days text-info"></i>
+                            <span>Exams & Timetable</span>
+                        </button>
+                        <button class="menu-item" data-filter="complaint" data-prompt="Hostel WiFi is broken and needs urgent repair.">
+                            <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                            <span>WiFi & Repairs</span>
+                        </button>
+                        <button class="menu-item" data-filter="document" data-prompt="How do I apply for an official transcript certificate?">
+                            <i class="fa-solid fa-file-contract text-document"></i>
+                            <span>Certificates & Forms</span>
+                        </button>
+                        <button class="menu-item" data-filter="faq" data-prompt="What is the minimum attendance requirement policy?">
+                            <i class="fa-solid fa-book-open text-faq"></i>
+                            <span>Rules & Policies</span>
+                        </button>
+                        <button class="menu-item" data-filter="notifier" data-prompt="What are the latest campus announcements and alerts?">
+                            <i class="fa-solid fa-bell text-success"></i>
+                            <span>Announcements & Alerts</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Quick Samples -->
+                <div class="sidebar-block">
+                    <h2 class="sidebar-heading"><i class="fa-solid fa-bolt"></i> Popular Questions</h2>
+                    <div class="prompt-tags">
+                        <button class="tag-btn" data-text="When are the end semester exam dates?">📅 Exam Schedule</button>
+                        <button class="tag-btn" data-text="Report plumbing complaint in hostel room 302">🔧 Plumbing Repair</button>
+                        <button class="tag-btn" data-text="I need my bonafide certificate for passport">📜 Bonafide Certificate</button>
+                        <button class="tag-btn" data-text="What are the campus gate timing rules?">🏛️ Gate Timings</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="clear-btn" class="btn-clear">
+                        <i class="fa-solid fa-trash-can"></i> Clear Stream
+                    </button>
+                </div>
+            </aside>
+
+            <!-- RIGHT MAIN RESULTS CONTENT -->
+            <main class="main-content">
+                <div class="content-header">
+                    <h2>campusOps Assistant Stream</h2>
+                    <p>Search any query in the top bar or click a category on the left for instant responses.</p>
+                </div>
+
+                <!-- Response Stream -->
+                <div class="stream-container" id="stream-container">
+                    <div class="welcome-box">
+                        <div class="welcome-icon">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <h3>Welcome to campusOps</h3>
+                        <p>Use the <strong>top search bar</strong> or click any of the <strong>categories on the left</strong> to get started!</p>
+                    </div>
+                </div>
+
+                <!-- Loader Indicator -->
+                <div id="loader" class="loader-box hidden">
+                    <div class="spinner"></div>
+                    <span>Processing query...</span>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
