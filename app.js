@@ -195,9 +195,9 @@ function initChat() {
     chatContainer.innerHTML = "";
 
     appendBotMessage(
-        "👋 Welcome to <strong>Sri Eswar College of Engineering</strong> Complaint Management Portal!<br><br>" +
-        "I am your official <strong>SECE Complaint Assistant</strong>. I am here to collect your grievance, automatically route it to the responsible department, and generate an official tracking ticket.<br><br>" +
-        "To get started, please tell me your <strong>Full Name</strong> and your <strong>Department / Year</strong> (e.g. <em>Aravind Swamy, CSE III Year</em>)."
+        "👋 Welcome to <strong>Sri Eswar College of Engineering</strong> Complaint Portal!<br><br>" +
+        "I am your campus <strong>Student Helpdesk Assistant</strong>. I am here to assist you in registering your grievance, routing it to the appropriate department, and generating an official tracking ticket.<br><br>" +
+        "To get started, please type your <strong>Full Name</strong> and <strong>Department / Year</strong> (e.g. <em>Aravind Swamy, CSE III Year</em>)."
     );
 
     renderChatChips([
