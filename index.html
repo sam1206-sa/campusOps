@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Eswar College of Engineering – Complaint Management Portal</title>
+    <meta name="description" content="Official Complaint Management Portal & AI Agent for Sri Eswar College of Engineering. Register, track, and manage campus grievances seamlessly.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Banner Header -->
+        <header class="header">
+            <div class="brand-container">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Sri Eswar College of Engineering</h1>
+                    <p class="subtitle"><span class="badge-official">OFFICIAL</span> Complaint Management Portal & AI Agent</p>
+                </div>
+            </div>
+            <nav class="nav-tabs" role="tablist">
+                <button class="nav-btn active" id="tab-agent" onclick="switchTab('agent')">
+                    <i class="fa-solid fa-robot"></i> <span>AI Agent Assistant</span>
+                </button>
+                <button class="nav-btn" id="tab-form" onclick="switchTab('form')">
+                    <i class="fa-solid fa-file-pen"></i> <span>Express Form</span>
+                </button>
+                <button class="nav-btn" id="tab-track" onclick="switchTab('track')">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> <span>Track Status</span>
+                </button>
+                <button class="nav-btn" id="tab-admin" onclick="switchTab('admin')">
+                    <i class="fa-solid fa-user-shield"></i> <span>Department Portal</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- SECTION 1: AI AGENT CONVERSATIONAL INTERFACE -->
+            <section id="sec-agent" class="tab-pane active">
+                <div class="agent-layout">
+                    <!-- Left: Chat Window -->
+                    <div class="chat-window">
+                        <div class="chat-header">
+                            <div class="agent-avatar">
+                                <i class="fa-solid fa-user-gear"></i>
+                                <span class="status-dot"></span>
+                            </div>
+                            <div class="agent-info">
+                                <h3>SECE Complaint Assistant</h3>
+                                <p><i class="fa-solid fa-shield-halved"></i> Online & Official • Polite, Confidential & Swift</p>
+                            </div>
+                            <button class="btn-secondary btn-sm" onclick="resetChat()">
+                                <i class="fa-solid fa-rotate-left"></i> Start New
+                            </button>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <!-- Messages populated by app.js -->
+                        </div>
+
+                        <!-- Category Quick Suggestion Chips -->
+                        <div class="chat-quick-chips" id="chatChips">
+                            <!-- Category chips rendered dynamically -->
+                        </div>
+
+                        <!-- Chat Input Box -->
+                        <div class="chat-input-area" id="chatInputArea">
+                            <form id="chatForm" onsubmit="handleChatSubmit(event)">
+                                <div class="input-wrapper">
+                                    <input type="text" id="chatInput" placeholder="Type your response or details here..." autocomplete="off">
+                                    <label for="chatFileAttach" class="attach-btn" title="Attach Photo (Optional)">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                        <input type="file" id="chatFileAttach" accept="image/*" onchange="handleChatFileUpload(event)">
+                                    </label>
+                                    <button type="submit" class="send-btn" title="Send Message">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div id="chatFilePreview" class="file-preview-strip hidden">
+                                    <span id="chatFileName">image.png</span>
+                                    <button type="button" onclick="removeChatFile()"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Info & Guidelines Panel -->
+                    <div class="agent-sidebar">
+                        <div class="card info-card">
+                            <div class="card-title">
+                                <i class="fa-solid fa-circle-info"></i> Department Routing Quick Guide
+                            </div>
+                            <div class="dept-pills-grid">
+                                <div class="dept-pill"><i class="fa-solid fa-bolt"></i> <strong>Electrical:</strong> Fan, Light, Power, AC</div>
+                                <div class="dept-pill"><i class="fa-solid fa-laptop-code"></i> <strong>IT Support:</strong> Wi-Fi, Projector, Computers</div>
+                                <div class="dept-pill"><i class="fa-solid fa-wrench"></i> <strong>Maintenance:</strong> Cleanliness, Water, Washroom, Bench</div>
+                                <div class="dept-pill"><i class="fa-solid fa-user-graduate"></i> <strong>Academic Office:</strong> Classroom Change, Attendance</div>
+                                <div class="dept-pill"><i class="fa-solid fa-file-signature"></i> <strong>Exam Cell:</strong> Timetable, Revaluation</div>
+                                <div class="dept-pill"><i class="fa-solid fa-bus"></i> <strong>Transport:</strong> Bus Delays & Routes</div>
+                                <div class="dept-pill"><i class="fa-solid fa-shield-virus"></i> <strong>Security:</strong> Harassment, Parking, Safety</div>
+                            </div>
+                        </div>
+
+                        <div class="card alert-card">
+                            <div class="card-title text-danger">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Emergency & Zero Tolerance
+                            </div>
+                            <p>Ragging, safety risks, and harassment complaints are marked <strong>HIGH PRIORITY</strong> and escalated immediately to the Principal & Campus Safety Cell.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: EXPRESS DIRECT FORM INTERFACE -->
+            <section id="sec-form" class="tab-pane">
+                <div class="form-container card">
+                    <div class="form-header">
+                        <h2><i class="fa-solid fa-clipboard-list"></i> Direct Complaint Registration Form</h2>
+                        <p>Prefer filling all details at once? Submit your complaint below.</p>
+                    </div>
+
+                    <form id="expressForm" onsubmit="handleExpressFormSubmit(event)">
+                        <!-- User Details Group -->
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-id-card"></i> 1. User & Contact Details
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="formName">Full Name <span class="req">*</span></label>
+                                <input type="text" id="formName" required placeholder="e.g. Aravind Swamy">
+                            </div>
+                            <div class="form-group">
+                                <label for="formRegNo">Register Number (Optional)</label>
+                                <input type="text" id="formRegNo" placeholder="e.g. 713821CS042">
+                            </div>
+                            <div class="form-group">
+                                <label for="formDept">Department <span class="req">*</span></label>
+                                <select id="formDept" required>
+                                    <option value="">-- Select Department --</option>
+                                    <option value="CSE">Computer Science & Engineering (CSE)</option>
+                                    <option value="AI-DS">Artificial Intelligence & Data Science (AI-DS)</option>
+                                    <option value="ECE">Electronics & Communication (ECE)</option>
+                                    <option value="EEE">Electrical & Electronics (EEE)</option>
+                                    <option value="MECH">Mechanical Engineering (MECH)</option>
+                                    <option value="CIVIL">Civil Engineering</option>
+                                    <option value="IT">Information Technology (IT)</option>
+                                    <option value="MBA">Management Studies (MBA)</option>
+                                    <option value="S&H">Science & Humanities (S&H)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="formYearSec">Year & Section <span class="req">*</span></label>
+                                <input type="text" id="formYearSec" required placeholder="e.g. III Year - B Sec">
+                            </div>
+                            <div class="form-group span-full">
+                                <label for="formContact">Contact Number (Optional)</label>
+                                <input type="tel" id="formContact" placeholder="e.g. +91 9876543210">
+                            </div>
+                        </div>
+
+                        <!-- Complaint Details Group -->
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-circle-exclamation"></i> 2. Complaint Specifics
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group span-full">
+                                <label for="formCategory">Complaint Category <span class="req">*</span></label>
+                                <select id="formCategory" required onchange="updateFormDeptPreview()">
+                                    <option value="">-- Choose Category --</option>
+                                    <!-- 26 categories populated by app.js -->
+                                </select>
+                                <small class="form-help-text" id="routingPreviewBadge">
+                                    <i class="fa-solid fa-turn-down-right"></i> Target Department: <strong id="autoRoutedDept">Select a category</strong>
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formBuilding">Building / Block <span class="req">*</span></label>
+                                <select id="formBuilding" required>
+                                    <option value="">-- Select Location --</option>
+                                    <option value="Main Academic Block">Main Academic Block</option>
+                                    <option value="IT & Computing Block">IT & Computing Block</option>
+                                    <option value="Mechanical & Labs Block">Mechanical & Labs Block</option>
+                                    <option value="Boys Hostel A & B">Boys Hostel A & B</option>
+                                    <option value="Girls Hostel">Girls Hostel</option>
+                                    <option value="Central Library & Exam Cell">Central Library & Exam Cell</option>
+                                    <option value="College Canteen & Food Court">College Canteen & Food Court</option>
+                                    <option value="Campus Bus Parking & Depot">Campus Bus Parking & Depot</option>
+                                    <option value="Sports Complex & Grounds">Sports Complex & Grounds</option>
+                                    <option value="Other Campus Location">Other Campus Location</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formFloor">Floor <span class="req">*</span></label>
+                                <input type="text" id="formFloor" required placeholder="e.g. Ground Floor / 2nd Floor">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formRoom">Room / Classroom / Lab No. <span class="req">*</span></label>
+                                <input type="text" id="formRoom" required placeholder="e.g. Lab 304 / Room 102 / Washroom B">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formDateTime">Date & Time of Issue <span class="req">*</span></label>
+                                <input type="datetime-local" id="formDateTime" required>
+                            </div>
+
+                            <div class="form-group span-full">
+                                <label for="formDesc">Detailed Description <span class="req">*</span></label>
+                                <textarea id="formDesc" rows="4" required placeholder="Please describe the issue clearly (e.g. Fan #2 in classroom CSE-B is making severe noise and stopped rotating)..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formUrgency">Urgency / Priority Level <span class="req">*</span></label>
+                                <select id="formUrgency" required>
+                                    <option value="Low">Low - Normal turnaround (48 hrs)</option>
+                                    <option value="Medium" selected>Medium - Moderate issue (24 hrs)</option>
+                                    <option value="High">High - Urgent / Immediate Attention (4 hrs)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formPhoto">Upload Photo (Optional)</label>
+                                <input type="file" id="formPhoto" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary btn-lg">
+                                <i class="fa-solid fa-paper-plane"></i> Submit Complaint Ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECTION 3: TRACK COMPLAINT TICKET STATUS -->
+            <section id="sec-track" class="tab-pane">
+                <div class="track-container">
+                    <div class="card search-card">
+                        <h2><i class="fa-solid fa-magnifying-glass"></i> Track Your Complaint Status</h2>
+                        <p>Enter your Complaint ID (e.g., <code>SECE-2026-0001</code>) to view live progress.</p>
+                        
+                        <div class="search-box">
+                            <input type="text" id="trackInput" placeholder="Enter Complaint ID e.g. SECE-2026-0001">
+                            <button class="btn-primary" onclick="searchTicket()">
+                                <i class="fa-solid fa-search"></i> Track Ticket
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Details Display Card -->
+                    <div id="ticketResultContainer" class="hidden">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: DEPARTMENT ADMIN & WORKFLOW MANAGEMENT -->
+            <section id="sec-admin" class="tab-pane">
+                <div class="admin-container card">
+                    <div class="admin-header">
+                        <div>
+                            <h2><i class="fa-solid fa-user-shield"></i> Department Routing & Ticket Management</h2>
+                            <p>Simulate campus department actions, update statuses, and view metrics.</p>
+                        </div>
+                        <div class="admin-filters">
+                            <select id="adminDeptFilter" onchange="renderAdminTickets()">
+                                <option value="ALL">All Departments</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="IT Support">IT Support</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Academic Office">Academic Office</option>
+                                <option value="Examination Cell">Examination Cell</option>
+                                <option value="Accounts Office">Accounts Office</option>
+                                <option value="Library">Library</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Hostel Office">Hostel Office</option>
+                                <option value="Security">Security</option>
+                                <option value="Administration">Administration</option>
+                            </select>
+
+                            <select id="adminStatusFilter" onchange="renderAdminTickets()">
+                                <option value="ALL">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Assigned">Assigned</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tickets Table -->
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket ID</th>
+                                    <th>Category</th>
+                                    <th>Location</th>
+                                    <th>Submitted By</th>
+                                    <th>Dept</th>
+                                    <th>Priority</th>
+                                    <th>Status Workflow</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2026 Sri Eswar College of Engineering. All rights reserved. • Confidential Campus Grievance System</p>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
