@@ -133,20 +133,59 @@
                                 <div class="student-banner-header">
                                     <div>
                                         <h2 id="banner-student-name">Alex Johnson</h2>
-                                        <p id="banner-student-reg"><i class="fa-solid fa-hashtag"></i> Register No: <strong>7376241CS101</strong> &bull; ID: <code>student_101</code></p>
+                                        <p id="banner-student-reg"><i class="fa-solid fa-id-card"></i> Register No: <strong id="banner-reg-val">7376241CS101</strong> &bull; Student ID: <code id="banner-id-val">student_101</code></p>
                                     </div>
                                     <div class="pending-summary-box">
-                                        <span class="pending-label">Total Pending Dues</span>
+                                        <span class="pending-label">Total Outstanding Dues</span>
                                         <h3 id="banner-pending-amount">$1,515.50</h3>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Right Side Detailed Fee Breakdown Table / List -->
+                            <div class="fee-statement-card">
+                                <div class="statement-title-row">
+                                    <h4><i class="fa-solid fa-list-check"></i> Itemized Student Fee Statement</h4>
+                                    <span class="text-muted" style="font-size: 0.8rem;">Live Database Records</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="statement-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Fee Type</th>
+                                                <th>Amount ($)</th>
+                                                <th>Due Date</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="student-statement-body">
+                                            <!-- Dynamically populated per student search -->
+                                            <tr>
+                                                <td>Tuition Fee</td>
+                                                <td>$1,500.00</td>
+                                                <td><code>2026-07-19</code></td>
+                                                <td><span class="badge badge-overdue">OVERDUE</span></td>
+                                                <td><button class="btn btn-success btn-sm btn-pay" data-id="1"><i class="fa-solid fa-check"></i> Mark Paid</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Library Fine</td>
+                                                <td>$15.50</td>
+                                                <td><code>2026-08-01</code></td>
+                                                <td><span class="badge badge-pending">PENDING</span></td>
+                                                <td><button class="btn btn-success btn-sm btn-pay" data-id="2"><i class="fa-solid fa-check"></i> Mark Paid</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Agent Q&A Stream -->
                             <div class="chat-messages" id="chat-messages">
                                 <div class="message system-msg">
                                     <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
                                     <div class="msg-content">
-                                        <p>Enter the <strong>Student Name</strong> &amp; <strong>Register Number</strong> on the left side to fetch pending dues and fee details immediately!</p>
+                                        <p>Select or enter a <strong>Student Name</strong> &amp; <strong>Register Number</strong> on the left side to fetch and inspect fee details on the right panel!</p>
                                         <span class="msg-time">System Ready</span>
                                     </div>
                                 </div>

@@ -150,13 +150,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             
-            // Update Right Side Output Statement Banner
+            // Update Right Side Output Statement Banner & Statement Table
             if (data.summary) {
                 const sum = data.summary;
                 bannerStudentName.textContent = sum.student_name || studentName;
-                bannerStudentReg.innerHTML = `<i class="fa-solid fa-hashtag"></i> Register No: <strong>${sum.register_no || registerNo}</strong> &bull; ID: <code>${sum.user_id || currentUserId}</code>`;
+                document.getElementById('banner-reg-val').textContent = sum.register_no || registerNo;
+                document.getElementById('banner-id-val').textContent = sum.user_id || currentUserId;
                 bannerPendingAmount.textContent = `$${(sum.total_pending || 0).toFixed(2)}`;
                 activeStudentBadge.textContent = `${sum.student_name || studentName} | ${sum.register_no || registerNo}`;
+
+                renderRightStatementTable(sum.fees || []);
             }
 
             appendChatMessage('agent', data.text, 'Fee Reminder Agent', data.success);
@@ -173,12 +176,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Update banner fallback
                 bannerStudentName.textContent = studentName;
-                bannerStudentReg.innerHTML = `<i class="fa-solid fa-hashtag"></i> Register No: <strong>${registerNo}</strong> &bull; ID: <code>${currentUserId}</code>`;
+                document.getElementById('banner-reg-val').textContent = registerNo;
+                document.getElementById('banner-id-val').textContent = currentUserId;
                 activeStudentBadge.textContent = `${studentName} | ${registerNo}`;
                 
+                // Fallback demo fee rows
+                renderRightStatementTable([
+                    { id: 1, fee_type: 'tuition', amount: 1500.00, due_date: getOffsetDate(-10), status: 'overdue' },
+                    { id: 2, fee_type: 'library_fine', amount: 15.50, due_date: getOffsetDate(3), status: 'pending' }
+                ]);
+
                 appendChatMessage('agent', fallbackReply.text, 'Fee Reminder Agent (Local Demo)');
             }, 500);
         }
+    }
+
+    function renderRightStatementTable(fees) {
+        const tbody = document.getElementById('student-statement-body');
+        if (!tbody) return;
+
+        if (!fees || fees.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding: 16px;">
+                        No fee records found for this student. Balance is $0.00.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = fees.map(f => {
+            const statusClass = f.status === 'paid' ? 'badge-paid' : (f.status === 'overdue' ? 'badge-overdue' : 'badge-pending');
+            const feeTitle = f.fee_type.replace('_', ' ').toUpperCase();
+            return `
+                <tr>
+                    <td><strong>${feeTitle}</strong></td>
+                    <td>$${Number(f.amount).toFixed(2)}</td>
+                    <td><code>${f.due_date}</code></td>
+                    <td><span class="badge ${statusClass}">${f.status.toUpperCase()}</span></td>
+                    <td>
+                        ${f.status !== 'paid' ? `
+                            <button class="btn btn-success btn-sm btn-pay-right" data-id="${f.id || 1}">
+                                <i class="fa-solid fa-check"></i> Mark Paid
+                            </button>
+                        ` : `
+                            <span class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-lock"></i> Settled</span>
+                        `}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        document.querySelectorAll('.btn-pay-right').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const feeId = btn.getAttribute('data-id');
+                await markFeeAsPaid(feeId);
+                const sName = studentNameInput.value.trim();
+                const sReg = registerNoInput.value.trim();
+                performStudentSearch(`Refresh statement after payment for ${sName}`);
+            });
+        });
     }
 
     function appendChatMessage(senderType, messageText, label = '', isSuccess = true) {
